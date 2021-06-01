@@ -1,0 +1,17 @@
+#PBS -l walltime=1:00
+#PBS -l nodes=2:ppn=16
+#PBS -q debug16core
+
+                                        # copy PBS_NODEFILE to current directory
+cd $PBS_O_WORKDIR                       # so it is available to all nodes
+cp $PBS_NODEFILE nodefile
+for n in `uniq $PBS_NODEFILE`; do       # ssh to each job node and run ./nodecode.sh
+   ssh $n "cd $PBS_O_WORKDIR; ./nodecode.sh nodefile" &
+done;
+
+for n in `uniq $PBS_NODEFILE`; do       # wait for all nodes to finish
+   while [ `ls $n.finished|wc -l` -eq 0 ]; do
+       sleep 1;
+   done;
+done
+cat numbers.p* >all                     # copy results
